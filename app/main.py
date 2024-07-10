@@ -9,7 +9,5 @@ app.include_router(router)
 
 
 @app.get("/", tags=["home"])
-def message() -> HTMLResponse:
-    return HTMLResponse("<h1>Welcome to My Movie App - API</h1>")
-
-
+def main() -> HTMLResponse:
+    return {"msg": "Welcome to My Movie App - API"}

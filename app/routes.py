@@ -10,14 +10,14 @@ def get_movies() -> list:
 
 @router.get("/movies/{id}", tags=["movies"])
 def get_movies(id: int) -> Movie:
-    movie: Movie = next((movie for movie in movies if movie["id"] == id), {})
+    movie: Movie = next((movie for movie in movies if movie.id == id), {})
     return movie
 
 
 @router.get("/movies/", tags=["movies"])
 def get_movies_by_category(category: str) -> list:
     movies_by_category: list = [
-        movie for movie in movies if movie.get("category") == category
+        movie for movie in movies if movie.category == category
     ]
     return movies_by_category
 
@@ -42,9 +42,9 @@ def edit_movie(id: int, new_movie: Movie = Body()) -> list[Movie]:
 
 
 @router.delete("/movies/", tags=["movies"])
-def delete_movie(id: int, movie_to_delete: Movie) -> list[Movie]:
+def delete_movie(id: int) -> list[Movie]:
     position: int = next(
-        (index for index, movie in enumerate(movies) if movie["id"] == id), -1
+        (index for index, movie in enumerate(movies) if movie.id == id), -1
     )
     if position == -1:
         return []
