@@ -1,8 +1,18 @@
-from fastapi import APIRouter, Body, Path, Query
+from fastapi import APIRouter, Body, Depends, Path, Query, Request, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
 from .utils import Movie, User, movies
-from typing import List, Dict
-from .jwt_manager import create_token
+from typing import Coroutine, List, Dict
+from .jwt_manager import create_token, validate_token
+
+
+class JWTBearer(HTTPBearer):
+    async def __call__(self, request: Request):
+        auth = await super().__call__(request)
+        data:dict = validate_token(auth.credentials)
+        if data["email"] != "admin@mymovieapi.lcl":
+            raise HTTPException(status_code=403, detail="Invalid credentials")
+
 
 router = APIRouter()
 
@@ -21,7 +31,7 @@ def main() -> Dict:
     return JSONResponse(content={"msg": "Welcome to My Movie App - API"}, status_code=200)
 
 
-@router.get("/movies", tags=["movies"], response_model=List, status_code=200)
+@router.get("/movies", tags=["movies"], response_model=List, status_code=200, dependencies=[Depends(JWTBearer())])
 def get_movies() -> List:
     return JSONResponse(content=movies, status_code=200)
 

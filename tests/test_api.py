@@ -3,12 +3,14 @@ from fastapi.testclient import TestClient
 from fastapi.encoders import jsonable_encoder
 from app.main import app
 from app.utils import Movie, User, generate_random_string
+from app.jwt_manager import create_token
 
 client = TestClient(app)
 
+
 fake_user: User = {
-    "email": "usuario@dominio.test",
-    "password": "A(w%BeX<<7I=(P4_T9ZVZy@LE"
+    "email": "admin@mymovieapi.lcl",
+    "password": "asdf1234"
 }
 
 fake_movie: Movie = {
@@ -22,13 +24,9 @@ fake_movie: Movie = {
 
 
 def test_login_success() -> None:
-    data: User = {
-        "email": "usuario@dominio.test",
-        "password": "A(w%BeX<<7I=(P4_T9ZVZy@LE"
-    }
     response = client.post(
         "/login",
-        json=data)
+        json=fake_user)
     assert response.status_code == 200
 
 
@@ -59,8 +57,13 @@ def test_create_movie() -> None:
 
 
 def test_get_movies() -> None:
+    token: str = create_token(fake_user)
+    headers={
+        "Authorization": f"Bearer {token}"
+    }
     response = client.get(
-        "/movies"
+        "/movies",
+        headers=headers
     )
 
     assert response.status_code == 200
