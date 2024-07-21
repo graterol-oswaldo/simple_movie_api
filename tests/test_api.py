@@ -5,7 +5,7 @@ from app.main import app
 from .utils import generate_random_string
 from utils.jwt_manager import create_token
 from schemas.movie import Movie
-from schemas.user import User,UserBase
+from schemas.user import User, UserBase
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -41,10 +41,12 @@ app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
 
+test_token: str = None
 
 
 def test_create_user() -> None:
-    user: User = User(name="Test User",email="test@domain.lcl",password="asdf1234")
+    user: User = User(name="Test User",
+                      email="test@domain.lcl", password="asdf1234")
     response = client.post(
         "/users/",
         json=user.model_dump()
@@ -53,15 +55,28 @@ def test_create_user() -> None:
     assert response.json() == {"msg": "The user was created"}
 
 
+def test_get_user_by_email() -> None:
+    email: str = "test@domain.lcl"
+    response = client.get(
+        f"/users/?email={email}"
+    )
+    assert response.status_code == 200
+    data = jsonable_encoder(response.json())
+    assert data["name"] == "Test User"
+
 
 def test_login_success() -> None:
-    user: User = UserBase(email="test@domain.lcl",password="asdf1234")
+    user: UserBase = UserBase(email="test@domain.lcl", password="asdf1234")
     response = client.post(
         "/login",
         json=user.model_dump())
     assert response.status_code == 200
+    base64_test_token = response.content
+    test_token_with_quotes = base64_test_token.decode("utf-8")
+    global test_token
+    test_token = test_token_with_quotes.strip('"')
 
-"""
+
 def test_login_failed() -> None:
     data: User = {
         "email": "usuario@dominio.test",
@@ -78,8 +93,6 @@ def test_root() -> None:
     assert response.status_code == 200
     assert response.json() == {"msg": "Welcome to My Movie App - API"}
 
-"""
-
 
 def test_create_movie() -> None:
     movie: Movie = Movie(title="Inception", overview="A skilled thief is given a chance to erase his criminal record by infiltrating dreams and planting an idea into the target's subconscious.",
@@ -92,21 +105,20 @@ def test_create_movie() -> None:
     assert response.json() == {"msg": "The movie was created"}
 
 
-""""
 def test_get_movies() -> None:
-    token: str = create_token(fake_user)
+    test_login_success()
     headers = {
-        "Authorization": f"Bearer {token}"
+        "Authorization": f"Bearer {test_token}"
     }
     response = client.get(
         "/movies",
         headers=headers
     )
-
     assert response.status_code == 200
     data = jsonable_encoder(response.json())
-    assert len(data) == 4
-    assert fake_movie["id"] == data[3]["id"]
+    assert len(data) == 1
+    assert data[0]["title"] == "Inception"
+
 
 def test_get_movies_by_id() -> None:
     movie_id: int = 1
@@ -115,7 +127,8 @@ def test_get_movies_by_id() -> None:
     )
     assert response.status_code == 200
     data = jsonable_encoder(response.json())
-    assert fake_movie["id"] == data["id"]
+    assert data["title"] == "Inception"
+
 
 def test_get_error_if_movies_id_not_exist() -> None:
     movie_id: int = 555
@@ -126,14 +139,14 @@ def test_get_error_if_movies_id_not_exist() -> None:
 
 
 def test_get_movies_by_category() -> None:
-    movie_category: str = "Action"
+    movie_category: str = "Science Fiction"
     response = client.get(
         f"/movies/?category={movie_category}"
     )
     assert response.status_code == 200
     data = jsonable_encoder(response.json())
     assert len(data) == 1
-    assert fake_movie["id"] == data[0]["id"]
+    assert data[0]["title"] == "Inception"
 
 
 def test_get_error_if_movie_category_not_exist() -> None:
@@ -145,23 +158,24 @@ def test_get_error_if_movie_category_not_exist() -> None:
 
 
 def test_edit_movie() -> None:
-    movie_id: int = 4
-    new_title = generate_random_string(15)
-    updated_movie: Movie = fake_movie
-    updated_movie["title"] = new_title
+    data: Movie = Movie(title="The Shawshank Redemption",
+                        overview="Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+                        year=1994,
+                        rating=9.8,
+                        category="Drama"
+                        )
     response = client.put(
-        f"/movies/?id={movie_id}",
-        json=updated_movie
+        f"/movies/?id=1",
+        json=data.model_dump()
     )
     assert response.status_code == 200
     assert response.json() == {"msg": "The movie was updated"}
 
 
 def test_remove_movie() -> None:
-    movie_id: int = 4
+    movie_id: int = 1
     response = client.delete(
         f"/movies/?id={movie_id}"
     )
     assert response.status_code == 200
     assert response.json() == {"msg": "The movie was removed"}
-"""
