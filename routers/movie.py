@@ -26,7 +26,7 @@ def get_movies(db:Session = Depends(get_db)) -> List:
 def get_movies(id: int = Path(ge=1, le=2000), db:Session = Depends(get_db)) -> Dict:
     result = MovieService(db).get_movie_by_id(id)
     if not result:
-        return JSONResponse(content={"msg": f"There is no any movie record with the id: {id}"}, status_code=200)
+        return JSONResponse(content={"msg": f"There is no any movie record with the id: {id}"}, status_code=404)
     return JSONResponse(content=jsonable_encoder(result), status_code=200)
 
 
@@ -34,7 +34,7 @@ def get_movies(id: int = Path(ge=1, le=2000), db:Session = Depends(get_db)) -> D
 def get_movies_by_category(category: str = Query(min_length=5, max_length=150), db:Session = Depends(get_db)) -> List:
     result = MovieService(db).get_movie_by_category(category)
     if not result:
-        return JSONResponse(content={"msg": f"There is no any movie record with the category: {category}"}, status_code=200)
+        return JSONResponse(content={"msg": f"There is no any movie record with the category: {category}"}, status_code=404)
     return JSONResponse(content=jsonable_encoder(result), status_code=200)
 
 

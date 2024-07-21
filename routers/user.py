@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from schemas.user import User, UserBase
@@ -11,18 +11,16 @@ from routers.main import get_db
 
 user_router = APIRouter()
 
-
 Base.metadata.create_all(bind=engine)
 
 
 @user_router.post("/login", tags=["auth"], response_model=Dict, status_code=200)
-def login(user_login: UserBase, db:Session=Depends(get_db)) -> Dict:
-    user:User = UserService(db).get_user_by_email(user_login.email)
-    if user.email == user_login.email and user.password == user_login.password:
-        token: str = create_token(user.to_dict())
-        return JSONResponse(content=token, status_code=200)
-    return JSONResponse(content={"msg": "Invalid username or password"}, status_code=401)
-
+def login(login_data: UserBase, db:Session=Depends(get_db)) -> Dict:
+    user:User = UserService(db).authenticate_user(login_data)
+    if not user:
+        raise HTTPException(status_code=401, detail="Incorrect username or password", headers={"WWW-Authenticate":"Bearer"})
+    token: str = create_token(user.to_dict())
+    return JSONResponse(content=token, status_code=200)
 
 @user_router.get("/users", tags=["users"], response_model=Dict, status_code=200)
 def get_user_by_email(email: str, db: Session = Depends(get_db)) -> Dict:

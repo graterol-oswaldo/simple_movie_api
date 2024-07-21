@@ -8,11 +8,11 @@ class UserModel(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(length=100), unique=True)
-    email = Column(String(length=250))
-    password = Column(String(length=50))
+    email = Column(String(length=100))
+    password = Column(String(length=250))
     is_active = Column(Boolean(), default=True)
 
 
     def to_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
-    
+    50
