@@ -1,34 +1,6 @@
-from pydantic import BaseModel, Field
-from datetime import datetime
+from schemas.movie import Movie
 from random import choices
 from string import ascii_letters, digits
-from typing import Optional
-
-
-
-class User(BaseModel):
-    email:str = Field(min_length=8,max_length=50)
-    password:str = Field(min_length=6,max_length=50)
-
-class Movie(BaseModel):
-    id: Optional[int] = None
-    title: str = Field(min_length=1, max_length=50)
-    overview: str = Field(min_length=1, max_length=300)
-    year: int = Field(ge=1888, le=datetime.now().year)
-    rating: float = Field(ge=0, le=10)
-    category: str = Field(min_length=1, max_length=50)
-
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "id": 1,
-                "title": "Roundhay Garden Scene",
-                "overview": "The first movie film ever recorded",
-                "year": 1888,
-                "rating": 10,
-                "category": "Micro"
-            }
-        }}
 
 
 data: list[dict] = [

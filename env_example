@@ -1,0 +1,13 @@
+## uvicorn options
+
+# Bind socket to this host [default: 127.0.0.1]
+HOST=127.0.0.1
+
+# Bind socket to this port [default: 8000]
+PORT=8000
+
+#Log level. [critical|error|warning|info|debug|trace] [default: info]
+LOG_LEVEL=info
+
+## JWT Secret
+JWT_SECRET=SECRET_KEY
